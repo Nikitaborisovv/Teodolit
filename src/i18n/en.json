@@ -1,0 +1,141 @@
+{
+  "app": {
+    "title": "Theodolite",
+    "subtitle": "Interactive 3D sandbox"
+  },
+  "panel": {
+    "scene": "Scene",
+    "instrument": "Instrument",
+    "zenith": "Zenith transition",
+    "errors": "Instrument errors",
+    "readout": "Readings",
+    "formulas": "Formulas",
+    "tutorial": "Tutorial",
+    "camera": "Camera",
+    "targets": "Targets",
+    "observations": "Observation log"
+  },
+  "camera": {
+    "perspective": "Perspective",
+    "front": "Front",
+    "top": "Top"
+  },
+  "scene": {
+    "worldAxes": "World axes X/Y/Z",
+    "instrumentAxes": "Instrument axes VV/HH/ZZ",
+    "angleArcs": "Angle arcs HA / z",
+    "labels": "Labels",
+    "sightLine": "Sight line (ideal vs actual)"
+  },
+  "axes": {
+    "VV": "Vertical axis (VV)",
+    "HH": "Trunnion axis (HH)",
+    "ZZ": "Sight axis (ZZ)"
+  },
+  "angles": {
+    "HA": "Horizontal angle",
+    "z": "Zenith distance",
+    "zSigned": "Zenith distance (signed)",
+    "zSignedHint": "Slider runs from −180° to +180°. Crossing zero physically flips the telescope through the zenith, but face (L/R) and the alidade are NOT touched. To rotate the alidade 180° and switch face, use the Flip button on the left.",
+    "v": "Elevation",
+    "face": "Face",
+    "faceL": "Left",
+    "faceR": "Right",
+    "flipFace": "Flip through zenith",
+    "continue": "Continue",
+    "reset": "Reset"
+  },
+  "zenith": {
+    "intro": "Flip through zenith and visualize the doubled collimation error.",
+    "animMode": "Animation mode",
+    "mode_auto": "Auto",
+    "mode_slow": "Slow",
+    "mode_step": "Step",
+    "averaging": "Two-face HA readings",
+    "haL": "HA (face L, raw)",
+    "haR": "HA (face R, raw)",
+    "haAvg": "HA (average)",
+    "markers": "Sight markers",
+    "markFirst": "Mark point 1 (face L)",
+    "markSecond": "Mark point 2 (face R)",
+    "markRestart": "Restart — mark point 1",
+    "markCount": "Marked",
+    "clear": "Clear markers",
+    "markerAngular": "Angular spread 2c",
+    "markerLinear": "Linear spread",
+    "units": "u",
+    "markerEmpty": "Aim the sight → \"Mark point 1\". Then move the sight (slider, or the Flip button to switch face) and hit \"Mark point 2\".",
+    "markerHalf": "Point 1 pinned. Move the sight any way (z slider, HA slider, or the Flip button) and press \"Mark point 2\".",
+    "markerHint": "The two scene markers are the actual sight tip before and after the flip. The segment between them is the doubled collimation error 2c/sin z.",
+    "explanation": "Averaging face L and R cancels collimation error c. VV tilt survives averaging."
+  },
+  "errors": {
+    "c": "Collimation error c",
+    "i": "Vertical index error i",
+    "tiltX": "VV tilt — tiltX",
+    "tiltY": "VV tilt — tiltY",
+    "reset": "Reset errors"
+  },
+  "readout": {
+    "rawHA": "HA, raw circle reading",
+    "correctedHA": "HA, corrected",
+    "rawV": "V, vertical circle reading",
+    "correctedZ": "z, corrected",
+    "dCollimation": "ΔHA from c",
+    "dTilt": "ΔHA from tilt",
+    "dIndex": "Δz from i"
+  },
+  "formulas": {
+    "collimation": "ΔHA = ±c / sin z. Sign flips on face R — two-face averaging cancels c.",
+    "index": "z = V − i on face L; z = (2π − V) − i on face R. Averaging both faces cancels i.",
+    "tilt": "ΔHA = (tiltX·sin HA − tiltY·cos HA)·cot z. Not cancelled by two-face averaging."
+  },
+  "tour": {
+    "start": "Start tour",
+    "active": "Tour in progress",
+    "next": "Next",
+    "finish": "Finish",
+    "hintsEnabled": "Show hints",
+    "axes": {
+      "title": "Axes of a theodolite",
+      "stop0": {
+        "title": "What is a theodolite?",
+        "body": "A theodolite is a surveying instrument for measuring horizontal (HA) and vertical (z) angles. Its design is built around three mutually perpendicular axes. Let's look at each one."
+      },
+      "stop1": {
+        "title": "Vertical axis VV",
+        "body": "VV is the main instrument axis — ideally vertical when the instrument is levelled. The alidade rotates about it. The horizontal angle HA measures that rotation. Try dragging the HA slider and watch the alidade move."
+      },
+      "stop2": {
+        "title": "Trunnion axis HH",
+        "body": "HH is perpendicular to VV and passes through the telescope. The telescope rotates about HH, determining zenith distance z. The ideal condition is HH ⊥ VV."
+      },
+      "stop3": {
+        "title": "Sight axis ZZ",
+        "body": "ZZ is the optical axis of the telescope, pointed at the target. Ideally ZZ ⊥ HH. Any deviation is the collimation error c. Enable the Sight Line and try changing c on its slider."
+      },
+      "stop4": {
+        "title": "Reading the angles",
+        "body": "HA is read from the horizontal circle. Zenith distance z is read from the vertical circle. The arcs show both angles simultaneously. Try the HA and z sliders and watch the arcs change."
+      }
+    }
+  },
+  "measure": {
+    "place": "Place targets",
+    "placing": "Click scene → place target",
+    "noTargets": "No targets. Enable Place mode and click the scene.",
+    "dirTo": "Direction to {{label}}",
+    "clearTargets": "Remove all targets",
+    "aim": "Aim",
+    "log": "Log",
+    "clearObs": "Clear log"
+  },
+  "hints": {
+    "HA": "Horizontal angle — rotation of the alidade about the vertical axis VV. Read from the horizontal circle.",
+    "z": "Zenith distance — telescope angle from vertical (zenith). z = 90° means the telescope is horizontal.",
+    "c": "Collimation error: angle between sight axis ZZ and the plane perpendicular to HH. Cancelled by two-face averaging.",
+    "i": "Vertical index error: constant offset of the vertical circle zero. Cancelled by averaging face L and face R readings.",
+    "tiltX": "VV tilt across the line of sight. Affects HA; NOT cancelled by two-face averaging.",
+    "tiltY": "VV tilt along the line of sight. Affects HA; NOT cancelled by two-face averaging."
+  }
+}

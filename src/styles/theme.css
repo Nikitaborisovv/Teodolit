@@ -1,0 +1,58 @@
+/* Design tokens — source of truth.
+   Tailwind reads these via tailwind.config.ts (var(--*) bindings).
+   Reference: UI_GUIDELINES.md */
+
+:root {
+  /* UI surfaces — Apple light palette */
+  --surface-bg:       #f2f2f7;
+  --surface-panel:    #ffffff;
+  --surface-elevated: #f5f5f7;
+  --border:           #d1d1d6;
+
+  --text-primary:     #1c1c1e;
+  --text-secondary:   #8e8e93;
+
+  /* World axes — readable on light canvas */
+  --axis-x: #e63025;
+  --axis-y: #1aab30;
+  --axis-z: #007aff;
+
+  /* Instrument axes (VV / HH / ZZ) */
+  --inst-vv: #9e35d8;
+  --inst-hh: #d27000;
+  --inst-zz: #00a0cc;
+
+  --sight-ideal: #1aab30;
+  --sight-error: #d27000;
+
+  --accent: #0071e3;
+
+  /* 3D canvas background — light, matches panel family */
+  --canvas-bg: #f0f0f5;
+
+  color-scheme: light;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  font-family: Inter, system-ui, sans-serif;
+  background: var(--surface-bg);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
