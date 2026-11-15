@@ -56,8 +56,8 @@ Buyer ≠ Consignee: покупатель в Дубае, груз получае
 ## Как пересобрать
 
 ```bash
-python3 tools/make_demo_docs.py samples/demo-01          # инвойсы и упаковочный лист (нужен Chromium)
-python3 tools/fill_cmr_demo.py <пустой_бланк.docx> samples/demo-01/cmr-demo-01.docx
+python3 tools/make_demo_docs.py samples/demo-01/data.json   # инвойсы и упаковочный лист (нужен Chromium)
+python3 tools/fill_cmr.py <пустой_бланк.docx> samples/demo-01/cmr-fields.json samples/demo-01/cmr-demo-01.docx
 soffice --headless --convert-to pdf --outdir samples/demo-01 samples/demo-01/cmr-demo-01.docx
 ```
 

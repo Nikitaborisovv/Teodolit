@@ -1,0 +1,30 @@
+{
+  "seller": {"name": "ANATOLIA FLOW PUMPS SAN. VE TIC. A.S.",
+             "address": "Demo OSB, 5. Cadde No: 12, Tuzla, Istanbul, Türkiye",
+             "contact": "Tel: +90 216 000 00 00 · export@anatoliaflow.example"},
+  "buyer": {"name": "GOLDEN DUNE TRADING FZ-LLC",
+            "address": "Office 1204, Bay Square Tower 7, Business Bay, Dubai, UAE",
+            "tax": "TRN: 100000000000003"},
+  "consignee": "\"ORIENT AGRO PROCESSING\" LLC, 45 Amir Temur Street, Tashkent 100000, Republic of Uzbekistan, TIN 300000001",
+  "contract": "Contract No. GD-2026/21 dated 03.10.2026",
+  "terms": "FCA ISTANBUL, TÜRKIYE",
+  "origin": "Türkiye",
+  "currency": "EUR",
+  "payment": "30% advance, 70% before shipment by T/T.",
+  "bank": "Demo Bank Istanbul, SWIFT DEMOTRXX, IBAN TR00 0000 0000 0000 0000 0000 00",
+  "invoices": [
+    {"no": "APF-2026-118", "date": "24.11.2026", "lines": [
+      ["Centrifugal pump ANF-80/250 with 30 kW electric motor", 5, "PCS", 6450.00, "841370"],
+      ["Mechanical seal kit ANF-80", 10, "SET", 185.00, "841391"],
+      ["Impeller ANF-80/250", 4, "PCS", 420.00, "841391"]]}
+  ],
+  "packing_list": {
+    "no": "APF-2026-118-PL", "date": "25.11.2026", "method": "pallets and wooden case",
+    "marks": "OAP / TASHKENT / ANF-80 / 1-4", "total_label": "4 PACKAGES (3 PALLETS, 1 WOODEN CASE)",
+    "packages": [
+      [1, "Centrifugal pump ANF-80/250 with motor (pallet)", "2 PCS", 452.00, 486.00, "1.20x1.00x1.20", 1.44],
+      [2, "Centrifugal pump ANF-80/250 with motor (pallet)", "2 PCS", 458.00, 492.00, "1.20x1.00x1.20", 1.44],
+      [3, "Centrifugal pump ANF-80/250 with motor (pallet)", "1 PC", 228.00, 251.00, "1.20x1.00x0.90", 1.08],
+      [4, "Mechanical seal kits 10 SET, impellers 4 PCS (wooden case)", "14 PCS", 84.40, 96.40, "0.80x0.60x0.50", 0.24]]
+  }
+}

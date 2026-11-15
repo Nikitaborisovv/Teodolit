@@ -1,25 +1,16 @@
-"""Generate fictitious Commercial Invoices and Packing List (PDF) for demo set 01.
+"""Generate fictitious Commercial Invoices and a Packing List (PDF) from a data file.
 
-All companies, addresses and registration numbers are invented.
-Usage: python3 tools/make_demo_docs.py samples/demo-01
+All companies, addresses and registration numbers in the data files are invented.
+Usage: python3 tools/make_demo_docs.py samples/demo-01/data.json
+PDFs are written next to the data file. Needs headless Chromium.
 """
+import json
+import subprocess
 import sys
+import tempfile
 from pathlib import Path
-import subprocess, tempfile
 
 CHROME = "/opt/pw-browsers/chromium-1243/chrome-linux64/chrome"
-
-OUT = Path(sys.argv[1])
-
-SELLER = ("NINGBO HARBORLIGHT MACHINERY CO., LTD.",
-          "No. 18 Demo Industrial Road, Beilun District, Ningbo, Zhejiang, China",
-          "Tel: +86 574 0000 0000 · sales@harborlight.example")
-BUYER = ("GOLDEN DUNE TRADING FZ-LLC",
-         "Office 1204, Bay Square Tower 7, Business Bay, Dubai, UAE",
-         "TRN: 100000000000003")
-CONSIGNEE = '"STEPPE INDUSTRIAL SYSTEMS" LLP, 15 Abay Avenue, office 210, Almaty, Republic of Kazakhstan, BIN 990000000001'
-TERMS = "EXW NINGBO, CHINA"
-CONTRACT = "Contract No. GD-2026/14 dated 12.08.2026"
 
 CSS = """
 @page { size: A4; margin: 16mm 14mm; }
@@ -41,10 +32,15 @@ tr.tot td { font-weight: bold; background: #f4f6f8; }
       color: rgba(176,0,32,0.08); transform: rotate(-30deg); font-weight: bold; }
 """
 
-def page(title, meta_left, meta_right, table_html, after=""):
+
+def money(x):
+    return f"{x:,.2f}"
+
+
+def page(seller, title, meta_left, meta_right, table_html, after=""):
     return f"""<!doctype html><html><head><meta charset="utf-8"><style>{CSS}</style></head><body>
 <div class="wm">SAMPLE</div>
-<div class="hdr"><b>{SELLER[0]}</b><br>{SELLER[1]}<br><span class="small">{SELLER[2]}</span></div>
+<div class="hdr"><b>{seller['name']}</b><br>{seller['address']}<br><span class="small">{seller['contact']}</span></div>
 <h1>{title}</h1>
 <div class="meta"><div>{meta_left}</div><div>{meta_right}</div></div>
 {table_html}
@@ -52,64 +48,74 @@ def page(title, meta_left, meta_right, table_html, after=""):
 <div class="sample">SAMPLE — FICTITIOUS DATA FOR TESTING ONLY. Not a commercial document.</div>
 </body></html>"""
 
-def money(x): return f"{x:,.2f}"
 
-def invoice(no, date, lines):
-    rows = ""; total = 0
-    for i, (desc, qty, uom, price) in enumerate(lines, 1):
-        amt = qty * price; total += amt
-        rows += f"<tr><td>{i}</td><td>{desc}</td><td class='n'>{qty}</td><td>{uom}</td><td class='n'>{money(price)}</td><td class='n'>{money(amt)}</td></tr>"
-    rows += f"<tr class='tot'><td colspan='5'>TOTAL, USD</td><td class='n'>{money(total)}</td></tr>"
-    table = f"""<table><tr><th>#</th><th>Description of goods</th><th>Qty</th><th>UOM</th><th>Unit price, USD</th><th>Amount, USD</th></tr>{rows}</table>"""
-    left = f"<b>Bill to:</b><br>{BUYER[0]}<br>{BUYER[1]}<br>{BUYER[2]}"
-    right = (f"<b>Invoice No.:</b> {no}<br><b>Date:</b> {date}<br><b>{CONTRACT}</b><br>"
-             f"<b>Terms of delivery:</b> {TERMS}<br><b>Country of origin:</b> China")
-    after = ("<p class='small'><b>Payment:</b> 100% T/T in advance.<br>"
-             "<b>Beneficiary bank:</b> Demo Bank of Ningbo, SWIFT DEMOCNXX, Account 0000 0000 0000 0000</p>")
-    return page("COMMERCIAL INVOICE", left, right, table, after), total
+def invoice(d, inv):
+    cur = d["currency"]
+    with_hs = any(len(line) > 4 for line in inv["lines"])
+    head = "<th>#</th><th>Description of goods</th>" + ("<th>HS code</th>" if with_hs else "")
+    head += f"<th>Qty</th><th>UOM</th><th>Unit price, {cur}</th><th>Amount, {cur}</th>"
+    rows, total = "", 0.0
+    for i, line in enumerate(inv["lines"], 1):
+        desc, qty, uom, price = line[:4]
+        amt = qty * price
+        total += amt
+        hs = f"<td>{line[4]}</td>" if with_hs else ""
+        rows += (f"<tr><td>{i}</td><td>{desc}</td>{hs}<td class='n'>{qty}</td><td>{uom}</td>"
+                 f"<td class='n'>{money(price)}</td><td class='n'>{money(amt)}</td></tr>")
+    span = 6 if with_hs else 5
+    rows += f"<tr class='tot'><td colspan='{span}'>TOTAL, {cur}</td><td class='n'>{money(total)}</td></tr>"
+    table = f"<table><tr>{head}</tr>{rows}</table>"
+    b = d["buyer"]
+    left = f"<b>Bill to:</b><br>{b['name']}<br>{b['address']}<br>{b['tax']}"
+    right = (f"<b>Invoice No.:</b> {inv['no']}<br><b>Date:</b> {inv['date']}<br><b>{d['contract']}</b><br>"
+             f"<b>Terms of delivery:</b> {d['terms']}<br><b>Country of origin:</b> {d['origin']}")
+    after = f"<p class='small'><b>Payment:</b> {d['payment']}<br><b>Beneficiary bank:</b> {d['bank']}</p>"
+    return page(d["seller"], "COMMERCIAL INVOICE", left, right, table, after), total
 
-INV1 = ("NHM-2611-01", "03.11.2026", [
-    ("Conveyor idler roller D133 x 1150 mm", 40, "PCS", 185.00),
-    ("Drive unit 30 kW (gear motor with drive pulley)", 2, "PCS", 9850.00),
-    ("Spare parts kit for conveyor line CL-800", 1, "SET", 1240.00),
-])
-INV2 = ("NHM-2611-02", "03.11.2026", [
-    ("Control cabinet for conveyor line CL-800", 1, "PC", 14600.00),
-])
 
-# case no, content, qty, nw, gw, LxWxH (m), volume
-CASES = [
-    (1, "Conveyor idler roller D133 x 1150 mm", "20 PCS", 380.00, 412.00, "1.25x0.96x1.00", 1.20),
-    (2, "Conveyor idler roller D133 x 1150 mm", "20 PCS", 368.00, 398.50, "1.25x0.92x1.00", 1.15),
-    (3, "Drive unit 30 kW", "1 PC", 610.00, 655.00, "1.50x1.20x1.00", 1.80),
-    (4, "Drive unit 30 kW", "1 PC", 604.00, 648.00, "1.50x1.20x1.00", 1.80),
-    (5, "Control cabinet for conveyor line CL-800", "1 PC", 251.00, 286.00, "1.00x0.95x1.00", 0.95),
-    (6, "Spare parts kit for conveyor line CL-800", "1 SET", 62.00, 74.50, "0.80x0.50x0.50", 0.20),
-]
-
-def packing_list():
+def packing_list(d):
+    pl = d["packing_list"]
     rows = ""
-    for c in CASES:
-        rows += (f"<tr><td class='n'>{c[0]}</td><td>{c[1]}</td><td class='n'>{c[2]}</td>"
-                 f"<td class='n'>{money(c[3])}</td><td class='n'>{money(c[4])}</td><td>{c[5]}</td><td class='n'>{c[6]:.2f}</td></tr>")
-    nw = sum(c[3] for c in CASES); gw = sum(c[4] for c in CASES); vol = sum(c[6] for c in CASES)
-    rows += (f"<tr class='tot'><td colspan='3'>TOTAL: {len(CASES)} WOODEN CASES</td><td class='n'>{money(nw)}</td>"
+    for c in pl["packages"]:
+        no, content, qty, nw, gw, dims, vol = c
+        rows += (f"<tr><td class='n'>{no}</td><td>{content}</td><td class='n'>{qty}</td>"
+                 f"<td class='n'>{money(nw)}</td><td class='n'>{money(gw)}</td><td>{dims}</td>"
+                 f"<td class='n'>{vol:.2f}</td></tr>")
+    nw = sum(c[3] for c in pl["packages"])
+    gw = sum(c[4] for c in pl["packages"])
+    vol = sum(c[6] for c in pl["packages"])
+    rows += (f"<tr class='tot'><td colspan='3'>TOTAL: {pl['total_label']}</td><td class='n'>{money(nw)}</td>"
              f"<td class='n'>{money(gw)}</td><td></td><td class='n'>{vol:.2f}</td></tr>")
-    table = ("<table><tr><th>Case No.</th><th>Contents</th><th>Qty</th><th>N.W., kg</th><th>G.W., kg</th>"
+    table = ("<table><tr><th>Pkg No.</th><th>Contents</th><th>Qty</th><th>N.W., kg</th><th>G.W., kg</th>"
              f"<th>Dimensions, m</th><th>Volume, m³</th></tr>{rows}</table>")
-    left = f"<b>To:</b><br>{BUYER[0]}<br>{BUYER[1]}<br><br><b>Consignee:</b><br>{CONSIGNEE}"
-    right = (f"<b>Packing List No.:</b> NHM-2611-PL<br><b>Date:</b> 05.11.2026<br>"
-             f"<b>To invoices:</b> {INV1[0]}, {INV2[0]} dd {INV1[1]}<br><b>Terms of delivery:</b> {TERMS}<br>"
-             "<b>Method of packing:</b> wooden cases<br><b>Shipping marks:</b> SIS / ALMATY / CL-800 / C/NO. 1-6")
-    return page("PACKING LIST", left, right, table), (len(CASES), nw, gw, vol)
+    b = d["buyer"]
+    left = f"<b>To:</b><br>{b['name']}<br>{b['address']}<br><br><b>Consignee:</b><br>{d['consignee']}"
+    invs = ", ".join(i["no"] for i in d["invoices"])
+    right = (f"<b>Packing List No.:</b> {pl['no']}<br><b>Date:</b> {pl['date']}<br>"
+             f"<b>To invoice(s):</b> {invs}<br><b>Terms of delivery:</b> {d['terms']}<br>"
+             f"<b>Method of packing:</b> {pl['method']}<br><b>Shipping marks:</b> {pl['marks']}")
+    return page(d["seller"], "PACKING LIST", left, right, table), (len(pl["packages"]), nw, gw, vol)
 
-def pdf(html, name):
+
+def to_pdf(html, path):
     with tempfile.NamedTemporaryFile("w", suffix=".html", delete=False, encoding="utf-8") as f:
         f.write(html)
     subprocess.run([CHROME, "--headless", "--no-sandbox", "--disable-gpu", "--no-pdf-header-footer",
-                    f"--print-to-pdf={OUT / name}", f.name], check=True, capture_output=True)
+                    f"--print-to-pdf={path}", f.name], check=True, capture_output=True)
 
-h1, t1 = invoice(*INV1); pdf(h1, "invoice-NHM-2611-01.pdf")
-h2, t2 = invoice(*INV2); pdf(h2, "invoice-NHM-2611-02.pdf")
-hp, tot = packing_list(); pdf(hp, "packing-list-NHM-2611-PL.pdf")
-print("invoice totals USD:", t1, t2, "| PL cases/NW/GW/vol:", tot)
+
+def main(data_path):
+    data_path = Path(data_path)
+    d = json.loads(data_path.read_text(encoding="utf-8"))
+    out = data_path.parent
+    for inv in d["invoices"]:
+        html, total = invoice(d, inv)
+        to_pdf(html, out / f"invoice-{inv['no']}.pdf")
+        print(f"invoice {inv['no']}: {money(total)} {d['currency']}")
+    html, tot = packing_list(d)
+    to_pdf(html, out / f"packing-list-{d['packing_list']['no']}.pdf")
+    print("packing list: packages=%d NW=%.2f GW=%.2f volume=%.2f" % tot)
+
+
+if __name__ == "__main__":
+    main(sys.argv[1])
